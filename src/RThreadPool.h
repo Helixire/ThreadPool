@@ -16,6 +16,7 @@ namespace RPTR
         ~ThreadPool();
 
         void    add_task(void (*funct)(void *), void *data);
+        void    wait();
     private:
         struct cmd
         {
@@ -28,11 +29,13 @@ namespace RPTR
             Mutex           mut;
             std::queue<cmd> list;
             bool            running;
+            Semaphore       update;
+            unsigned int    run;
         };
-        
+
         void init(unsigned int nb);
         static void thread_main(in_data *);
-        
+
         in_data         m_data;
         Thread          *m_pool;
         unsigned int    m_nb;
