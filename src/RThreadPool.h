@@ -3,9 +3,8 @@
 
 #include <memory>
 #include <queue>
-#include "RThread.h"
 #include "RSemaphore.h"
-#include "RMutex.h"
+#include "RLocker.h"
 #include "RAtomic.h"
 
 namespace RPTR
@@ -27,19 +26,18 @@ namespace RPTR
     };
     struct in_data
     {
-      Semaphore       sem;
-      Mutex           mut;
-      std::queue<cmd> list;
-      Atomic<bool>    running;
-      Semaphore       update;
-      unsigned int    run;
+      Semaphore             sem;
+      Mutex                 mut;
+      std::queue<cmd>       list;
+      Atomic<bool>          running;
+      Semaphore             update;
+      Atomic<unsigned int>  run;
     };
 
     void init(unsigned int nb);
     static void thread_main(std::shared_ptr<in_data> *ptr);
 
     std::shared_ptr<in_data>  m_data;
-    Thread                    *m_pool;
     unsigned int              m_nb;
   };
 }

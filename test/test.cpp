@@ -6,23 +6,29 @@ RPTR::Mutex  mut;
 
 void    fun(int *nb)
 {
-  mut.lock();
-  std::cout << (unsigned int)pthread_self() << " " << *nb << std::endl;
-  mut.unlock();
-  sleep(1);
-  delete nb;
+    {
+    RPTR::Locker    lock(mut);
+    std::cout << (unsigned int)pthread_self() << " " << *nb << std::endl;
+    }
+    delete nb;
+}
+
+void    instructor(RPTR::ThreadPool *pool)
+{
+    for (int i = 0; i < 10; ++i)
+    {
+        {
+            RPTR::Locker    lock(mut);
+            std::cout << "Pushed " << i << std::endl;
+        }
+        pool->add_task((void (*)(void*))fun, (void *)(new int(i)));
+    }
 }
 
 int main(int ac, char **av)
 {
-  int               i;
-  int               *nb;
-  RPTR::ThreadPool  pool(4);
+    RPTR::ThreadPool  pool(4);
 
-    for (i = 0; i < 20; ++i)
-    {
-      nb = new int(i);
-      pool.add_task((void (*)(void *))fun, (void *)nb);
-    }
+    pool.add_task((void (*)(void *))instructor, (void *)&pool);
     pool.wait();
 }
