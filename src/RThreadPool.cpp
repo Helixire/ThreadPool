@@ -12,13 +12,17 @@ RPTR::ThreadPool::~ThreadPool()
 {
   m_data->running = false;
   m_data->sem.add(m_nb);
+  for (int i = 0; i < m_nb; ++i)
+  {
+      m_pool[i].join();
+  }
 }
 
-void RPTR::ThreadPool::add_task(void (*funct)(void *), void *data)
+void RPTR::ThreadPool::add_task(SCommand cmd)
 {
   {
     Locker  lock(m_data->mut);
-    m_data->list.push({funct, data});
+    m_data->list.push(cmd);
   }
   m_data->sem.post();
 }
@@ -40,17 +44,13 @@ void RPTR::ThreadPool::wait()
 
 void RPTR::ThreadPool::init(unsigned int nb)
 {
-  Thread  *tmp;
-
   if (!nb)
   nb = 4; //TODO auto find correct number of thread
   m_nb = nb;
+  m_pool = new Thread[nb];
   for (; nb; --nb)
   {
-    tmp = new Thread;
-    tmp->start((void (*)(void *))thread_main, &m_data);
-    tmp->detach();
-    delete tmp;
+    m_pool[nb - 1].start((void (*)(void *))thread_main, &m_data);
   }
 }
 
@@ -58,7 +58,7 @@ void RPTR::ThreadPool::init(unsigned int nb)
 void RPTR::ThreadPool::thread_main(std::shared_ptr<in_data> *indata)
 {
   std::shared_ptr<in_data> data(*indata);
-  cmd tmp;
+  SCommand cmd;
 
   while (data->running.get())
   {
@@ -68,10 +68,10 @@ void RPTR::ThreadPool::thread_main(std::shared_ptr<in_data> *indata)
     {
       Locker  lock(data->mut);
       data->run += 1;
-      tmp = data->list.front();
+      cmd = data->list.front();
       data->list.pop();
     }
-    tmp.funct(tmp.data);
+    cmd->execute();
     data->run -= 1;
     data->update.post();
   }

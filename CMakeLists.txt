@@ -4,7 +4,7 @@ project(ThreadPool)
 
 add_subdirectory(Abstract)
 
-set(SRC_LIST "src/RThreadPool.cpp")
+set(SRC_LIST "src/RThreadPool.cpp" "src/RFunctionCommand.cpp")
 include_directories(src)
 
 add_library(ThreadPool ${SRC_LIST})

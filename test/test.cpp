@@ -1,5 +1,6 @@
 #include <iostream>
 #include "RThreadPool.h"
+#include "RFunctionCommand.h"
 #include <unistd.h>
 
 RPTR::Mutex  mut;
@@ -7,8 +8,8 @@ RPTR::Mutex  mut;
 void    fun(int *nb)
 {
     {
-    RPTR::Locker    lock(mut);
-    std::cout << (unsigned int)pthread_self() << " " << *nb << std::endl;
+        RPTR::Locker    lock(mut);
+        std::cout << (unsigned int)pthread_self() << " " << *nb << std::endl;
     }
     delete nb;
 }
@@ -21,7 +22,7 @@ void    instructor(RPTR::ThreadPool *pool)
             RPTR::Locker    lock(mut);
             std::cout << "Pushed " << i << std::endl;
         }
-        pool->add_task((void (*)(void*))fun, (void *)(new int(i)));
+        pool->add_task(RPTR::SCommand(new RPTR::FunctionCommand((void (*)(void*))fun, (void *)(new int(i)))));
     }
 }
 
@@ -29,6 +30,6 @@ int main(int ac, char **av)
 {
     RPTR::ThreadPool  pool(4);
 
-    pool.add_task((void (*)(void *))instructor, (void *)&pool);
+    pool.add_task(RPTR::SCommand(new RPTR::FunctionCommand((void (*)(void *))instructor, (void *)&pool)));
     pool.wait();
 }
