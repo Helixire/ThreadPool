@@ -16,6 +16,7 @@ RPTR::ThreadPool::~ThreadPool()
   {
       m_pool[i].join();
   }
+  delete[] m_pool;
 }
 
 void RPTR::ThreadPool::add_task(SCommand cmd)
