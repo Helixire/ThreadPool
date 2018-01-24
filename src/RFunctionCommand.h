@@ -4,14 +4,14 @@
 #include "RICommand.h"
 
 namespace RPTR {
-class FunctionCommand : public ICommand
-{
+class FunctionCommand : public ICommand {
 public:
-    FunctionCommand(void(*fun)(void *), void *param);
-    void execute();
+  FunctionCommand(void (*fun)(void *), void *param);
+  void execute();
+
 private:
-    void    (*m_fun)(void *);
-    void    *m_param;
+  void (*m_fun)(void *);
+  void *m_param;
 };
 }
 
